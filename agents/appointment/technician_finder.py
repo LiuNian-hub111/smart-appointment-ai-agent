@@ -184,7 +184,6 @@ class TechnicianFinder:
         appointment_service = AppointmentService()
         
         preference = appointment_history.get("preference")
-        gender = appointment_history.get("gender")
         start_time_str = appointment_history.get("start_time")
         duration_str = appointment_history.get("duration")
         technician_name = appointment_history.get("technician_name")
@@ -233,15 +232,13 @@ class TechnicianFinder:
                 yield_func("[THOUGHT][预约机器人] 没有找到任何技师数据\n")
             return None
 
-        # 先根据性别筛选技师
-        gender_filtered_techs = self.filter_technicians_by_gender(all_techs, gender)
-        if yield_func and gender and gender != "未知":
-            yield_func(f"[THOUGHT][预约机器人] 根据性别'{gender}'筛选技师，找到{len(gender_filtered_techs)}位技师\n")
-
-        # 再根据偏好筛选技师
-        filtered_techs = self.filter_technicians_by_preference(gender_filtered_techs, preference)
+        # 课程主题是必需条件，用老师的教学专长匹配
+        course = appointment_history.get("project", "")
+        filtered_techs = self.filter_technicians_by_preference(all_techs, course)
+        if preference and preference not in ("无", "未知"):
+            filtered_techs = self.filter_technicians_by_preference(filtered_techs, preference)
         if yield_func and preference and preference != "无":
-            yield_func(f"[THOUGHT][预约机器人] 根据偏好'{preference}'进一步筛选，找到{len(filtered_techs)}位技师\n")
+            yield_func(f"[THOUGHT][预约机器人] 根据课程和偏好筛选，找到{len(filtered_techs)}位老师\n")
         
-        # 查找可用技师
-        return self.find_available_technician(filtered_techs, gender_filtered_techs, start_time, end_time, preference, gender, yield_func)
+        # 仅在匹配课程的老师中查询档期
+        return self.find_available_technician(filtered_techs, filtered_techs, start_time, end_time, preference, None, yield_func)

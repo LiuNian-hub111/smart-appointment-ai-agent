@@ -166,7 +166,18 @@ class TechnicianRepository(BaseTechnicianRepository, BaseScheduleRepository):
         Returns:
             新创建的排班ID
         """
+        if start_time >= end_time:
+            raise ValueError("约课结束时间必须晚于开始时间")
         with self.session_manager.session_scope() as session:
+            if status == "busy":
+                conflict = session.query(TechnicianSchedule).filter(
+                    TechnicianSchedule.technician_id == technician_id,
+                    TechnicianSchedule.status == "busy",
+                    TechnicianSchedule.start_time < end_time,
+                    TechnicianSchedule.end_time > start_time,
+                ).first()
+                if conflict is not None:
+                    raise ValueError("老师在该时间段已有课程")
             schedule = TechnicianSchedule(
                 technician_id=technician_id,
                 start_time=start_time,

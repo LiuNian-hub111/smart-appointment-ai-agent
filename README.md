@@ -1,4 +1,10 @@
-# Smart Appointment AI Agent
+# 物理辅导约课 Agent（改造中）
+
+本目录是在 [smart-appointment-ai-agent](https://github.com/jerry-ai-dev/smart-appointment-ai-agent) 基础上改造的学习项目。原仓库的 README 保留在下方作为架构参考；以下按摩场景描述属于上游项目，不代表当前已实现的物理辅导功能。当前改造进度、运行限制与待办请看 [EDUCATION_ADAPTATION.md](EDUCATION_ADAPTATION.md)。
+
+---
+
+# 上游项目原始说明：Smart Appointment AI Agent
 
 Smart Appointment AI Agent 是一个面向按摩门店场景的智能预约与咨询系统。项目基于 FastAPI、LangChain、FAISS、SQLite 和多 Agent 协作架构，实现了意图识别、RAG 知识问答、技师智能匹配、预约管理、用户行为分析和个性化提醒等能力。
 

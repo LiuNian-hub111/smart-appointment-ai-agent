@@ -132,7 +132,7 @@ class UserBehaviorAgent:
             analysis = self.get_user_analysis(user_id)
             if not analysis or not analysis.get('favorite_technician_id'):
                 self.logger.info("没有找到用户偏好数据，使用默认消息")
-                return "尊敬的Tom，您好！好久没见了，要不要预约一个按摩放松一下？"
+                return "您好！如果需要物理辅导，可以查询老师档期再约课。"
             
             self.logger.info(f"用户分析数据: {analysis}")
             
@@ -141,9 +141,9 @@ class UserBehaviorAgent:
             tech_db = TechnicianDBRouter()
             tech_info = tech_db.get_technician_by_id(analysis['favorite_technician_id'])
             
-            tech_name = tech_info.get('name', '您偏爱的技师') if tech_info else '您偏爱的技师'
+            tech_name = tech_info.get('name', '您熟悉的老师') if tech_info else '您熟悉的老师'
             tech_strength = tech_info.get('strength', '') if tech_info else ''
-            service = analysis.get('favorite_service', '按摩')
+            service = analysis.get('favorite_service', '物理辅导')
             duration = analysis.get('favorite_duration', 60)
             
             self.logger.info(f"技师信息: {tech_name}, 特长: {tech_strength}")
@@ -153,22 +153,21 @@ class UserBehaviorAgent:
             self.logger.info(f"格式化后的时间: {times_text}")
             
             # 构建LLM提示
-            prompt = f"""请为健康理疗店生成一条温暖的回访消息。
+            prompt = f"""请为物理辅导约课系统生成一条简短的课程提醒消息。
 
-客户信息：
-- 称呼：尊敬的Tom
-- 最喜欢的理疗师：{tech_name}
-- 理疗师特长：{tech_strength}
-- 常用服务：{service.replace('按摩', '理疗')}
-- 常用时长：{duration}分钟
-- 理疗师空闲时间：{times_text}
+学生过去的约课信息：
+- 老师：{tech_name}
+- 教学方向：{tech_strength}
+- 课程：{service}
+- 课程时长：{duration}分钟
+- 可查询时段：{times_text}
 
 要求：
 1. 语气亲切温暖，像老朋友一样
-2. 提到理疗师的名字和特长
-3. 结合客户的使用习惯
+2. 提到老师的名字和教学方向
+3. 结合过去的课程需求
 4. 如果有空闲时间，自然地提及具体时间
-5. 最后邀请客户预约
+5. 最后邀请学生查询档期；不要声称档期已锁定
 6. 控制在80字以内
 7. 直接输出消息内容，不要任何标记"""
             
@@ -252,6 +251,6 @@ class UserBehaviorAgent:
         except Exception as e:
             self.logger.error(f"获取提醒信息失败: {type(e).__name__}: {str(e)}")
             return {
-                "message": "尊敬的Tom，您好！系统暂时无法查询技师时间，请稍后再试或直接联系我们预约。",
+                "message": "您好！系统暂时无法查询老师档期，请稍后再试。",
                 "technician_available_times": []
             }

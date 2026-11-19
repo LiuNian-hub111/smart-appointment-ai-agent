@@ -104,6 +104,6 @@ async def send_reminder(request: ReminderRequest):
         import logging
         logging.error(f"生成回访提醒失败: {e}")
         return ReminderResponse(
-            message="尊敬的Tom，您好！系统暂时无法查询技师时间，请稍后再试或直接联系我们预约。",
+            message="您好！系统暂时无法查询老师档期，请稍后再试。",
             technician_available_times=[]
         )

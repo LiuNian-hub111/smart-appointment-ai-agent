@@ -1,5 +1,5 @@
 """
-技师API
+老师信息API（保留原有 /api/technicians 路径以兼容页面）
 
 提供技师信息和排班查询接口
 """
@@ -9,14 +9,14 @@ from typing import List, Dict, Any
 from datetime import datetime
 from pydantic import BaseModel
 
-router = APIRouter(prefix="/api/technicians", tags=["技师管理"])
+router = APIRouter(prefix="/api/technicians", tags=["老师管理"])
 
 
 class TechnicianResponse(BaseModel):
     """技师信息响应"""
     id: int
     name: str
-    gender: str
+    gender: str | None = None
     strength: str
 
 
@@ -30,7 +30,7 @@ class ScheduleResponse(BaseModel):
     appointment_id: int | None = None
 
 
-@router.get("/", response_model=List[TechnicianResponse], summary="获取所有技师")
+@router.get("/", response_model=List[TechnicianResponse], summary="获取所有老师")
 async def get_all_technicians():
     """获取所有技师信息"""
     try:
@@ -52,7 +52,7 @@ async def get_all_technicians():
         raise HTTPException(status_code=500, detail=f"获取技师信息失败: {str(e)}")
 
 
-@router.get("/{technician_id}/schedule", response_model=List[ScheduleResponse], summary="获取技师排班")
+@router.get("/{technician_id}/schedule", response_model=List[ScheduleResponse], summary="获取老师排班")
 async def get_technician_schedule(technician_id: int):
     """获取指定技师今天的排班信息"""
     try:
@@ -88,7 +88,7 @@ async def get_technician_schedule(technician_id: int):
         raise HTTPException(status_code=500, detail=f"获取排班信息失败: {str(e)}")
 
 
-@router.get("/{technician_id}", response_model=TechnicianResponse, summary="获取单个技师信息")
+@router.get("/{technician_id}", response_model=TechnicianResponse, summary="获取单个老师信息")
 async def get_technician(technician_id: int):
     """获取指定技师的详细信息"""
     try:
@@ -113,7 +113,7 @@ async def get_technician(technician_id: int):
         raise HTTPException(status_code=500, detail=f"获取技师信息失败: {str(e)}")
 
 
-@router.get("/schedules/today", summary="获取所有技师今日排班")
+@router.get("/schedules/today", summary="获取所有老师今日排班")
 async def get_all_technicians_schedule_today():
     """获取所有技师今天的排班信息"""
     try:

@@ -2,7 +2,7 @@
 FastAPI应用程序
 
 主应用程序入口，配置中间件、路由和异常处理
-自动初始化知识库和技师数据
+自动初始化知识库和演示老师数据
 """
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
@@ -39,7 +39,7 @@ class SearchRequest(BaseModel):
 async def initialize_system():
     """系统启动时自动初始化"""
     try:
-        logger.info("🚀 正在初始化智能预约系统...")
+        logger.info("🚀 正在初始化物理辅导约课系统...")
         
         # 初始化知识库服务
         logger.info("📚 初始化知识库服务...")
@@ -47,7 +47,7 @@ async def initialize_system():
         await knowledge_service.initialize()
         
         # 初始化技师服务
-        logger.info("👨‍⚕️ 初始化技师服务...")
+        logger.info("👩‍🏫 初始化演示老师数据...")
         technician_service = TechnicianService()
         technician_service.initialize_default_technicians()
         
@@ -69,8 +69,8 @@ def create_app() -> FastAPI:
     """创建FastAPI应用实例"""
     
     app = FastAPI(
-        title="智能预约AI代理",
-        description="提供预约管理、智能咨询、用户行为分析等功能的API服务",
+        title="物理辅导约课 Agent",
+        description="提供物理课程咨询、老师排班和约课管理的API服务",
         version="1.0.0",
         docs_url="/docs",
         redoc_url="/redoc"

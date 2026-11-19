@@ -7,63 +7,16 @@ import logging
 logger = logging.getLogger(__name__)
 
 class TechnicianService:
-    """技师服务类 - 管理技师数据和默认初始化"""
+    """老师数据服务；沿用原项目的内部类名和数据库表名。"""
     
     def __init__(self):
         self.db = DatabaseRouter()
         
-        # 默认技师数据（10人，其中有两位擅长内容接近）
+        # 仅供本地演示；正式使用时应换成真实老师和课程资料
         self.default_technicians = [
-            {
-                "name": "张伟",
-                "gender": "男",
-                "strength": "擅长深层组织按摩，力气大，善于缓解肩颈腰背酸痛，注重肌肉深层放松"
-            },
-            {
-                "name": "王强",
-                "gender": "男",
-                "strength": "深层组织按摩专家，手法扎实，专注于运动损伤修复和肌肉放松"
-            },
-            {
-                "name": "李娜",
-                "gender": "女", 
-                "strength": "手法细腻，擅长舒缓放松，适合压力大、睡眠差人群"
-            },
-            {
-                "name": "赵敏",
-                "gender": "女",
-                "strength": "精通经络推拿，善于调理亚健康，力气适中"
-            },
-            {
-                "name": "刘洋",
-                "gender": "男",
-                "strength": "泰式按摩高手，拉伸到位，适合喜欢全身放松的客户"
-            },
-            {
-                "name": "孙丽",
-                "gender": "女",
-                "strength": "芳香精油按摩，舒缓情绪，适合女性客户"
-            },
-            {
-                "name": "周杰",
-                "gender": "男",
-                "strength": "中医推拿，针对颈椎、腰椎问题有丰富经验"
-            },
-            {
-                "name": "吴婷",
-                "gender": "女",
-                "strength": "头部按摩和足疗专家，助眠效果好"
-            },
-            {
-                "name": "郑斌",
-                "gender": "男",
-                "strength": "力气大，适合喜欢重手法的客户，善于肌肉放松"
-            },
-            {
-                "name": "何静",
-                "gender": "女",
-                "strength": "淋巴引流、面部护理，适合美容养生需求"
-            }
+            {"name": "演示老师A", "gender": None, "strength": "高中物理力学、运动学、牛顿定律"},
+            {"name": "演示老师B", "gender": None, "strength": "高中物理电磁学、电路、磁场"},
+            {"name": "演示老师C", "gender": None, "strength": "高中物理力学、能量守恒、动量"},
         ]
 
     def initialize_default_technicians(self) -> bool:

@@ -103,7 +103,7 @@ class AppointmentProcessor:
             return self._handle_recommendation_response(appointment_history, data)
         
         # 只更新有值的字段，避免覆盖之前的信息
-        for key in ["duration", "gender", "start_time", "project", "technician_name"]:
+        for key in ["duration", "start_time", "project", "technician_name"]:
             if data.get(key) and data[key] != "未知":
                 appointment_history[key] = data[key]
         
@@ -112,14 +112,9 @@ class AppointmentProcessor:
             appointment_history["preference"] = data["preference"]
         
         # 检查是否收集齐所有必需信息
-        # 必需信息：时间、项目、时长
-        # 如果指定了技师名，则不需要性别；否则性别也是必需的
+        # 必需信息：上课时间、课程主题、时长；老师可由系统推荐
         required_fields = ["start_time", "project", "duration"]
         technician_name = appointment_history.get("technician_name")
-        
-        if not technician_name or technician_name == "未知":
-            # 没有指定技师，需要性别来筛选
-            required_fields.append("gender")
         
         has_all_required = all(
             appointment_history.get(field) and appointment_history[field] != "未知" 
@@ -258,7 +253,7 @@ class AppointmentProcessor:
     
     async def _process_successful_appointment(self, tech: Dict[str, Any], 
                                            appointment_history: Dict[str, Any], session_id: str) -> str:
-        """处理预约成功的情况，并结合北京天气生成温馨提示"""
+        """保存约课并返回结果。"""
         start_time, end_time, duration_min = self.technician_finder.parse_time_and_duration(
             appointment_history["start_time"], 
             appointment_history["duration"]
@@ -270,18 +265,7 @@ class AppointmentProcessor:
         if success:
             # 更新内存中的忙碌时段
             self.appointment_database.update_memory_schedule(tech["id"], start_time, end_time)
-            # 使用 LLM agent 生成结合北京天气的温馨提示
-            if self.llm and hasattr(self, 'agent_executor'):
-                prompt = f"请获取北京今天的天气信息，然后结合天气情况为用户生成一段温馨的预约成功提示。技师姓名：{tech['name']}，性别：{tech['gender']}。请根据天气给出合适的建议和关怀。"
-                try:
-                    result = await self.agent_executor.ainvoke({"input": prompt})
-                    agent_output = result.get("output", "")
-                    return f"\n机器人：已为您预约技师：{tech['name']}，性别：{tech['gender']}。预约成功！\n{agent_output}\n"
-                except Exception as e:
-                    print(f"Agent调用失败: {e}")
-                    return self.message_builder.create_appointment_success_message(tech)
-            else:
-                return self.message_builder.create_appointment_success_message(tech)
+            return self.message_builder.create_appointment_success_message(tech)
         else:
             return self.message_builder.create_save_failure_message()
     
@@ -298,11 +282,6 @@ class AppointmentProcessor:
             missing.append("project")
         if not appointment_history.get("duration") or appointment_history.get("duration") == "未知":
             missing.append("duration")
-        
-        # 如果没有指定技师名，则需要性别
-        if not technician_name or technician_name == "未知":
-            if not appointment_history.get("gender") or appointment_history.get("gender") == "未知":
-                missing.append("gender")
         
         reply = self.message_builder.create_missing_info_questions(missing)
         yield f"[THOUGHT][预约机器人]用户的预约信息不完整，缺少：{', '.join(missing)}，我需要询问用户补充这些信息"
