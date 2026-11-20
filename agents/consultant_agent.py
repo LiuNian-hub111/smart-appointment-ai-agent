@@ -43,8 +43,9 @@ class ConsultantAgent:
 
     async def __aenter__(self):
         """异步上下文管理器入口"""
-        await self.knowledge_retriever.initialize()
-        print("咨询机器人已启动（数据库RAG模式）")
+        if not self.knowledge_retriever.kb_initialized:
+            await self.knowledge_retriever.initialize()
+            print("咨询机器人已启动（数据库RAG模式）")
         return self
 
     async def __aexit__(self, exc_type, exc, tb):
@@ -67,14 +68,14 @@ class ConsultantAgent:
         """
         return await self.consultation_processor.process_consultation(user_input)
 
-    async def consult_stream(self, user_input: str):
+    async def consult_stream(self, user_input: str, preclassified: bool = False):
         """
         流式输出咨询结果
         
         这是主要的咨询入口点，协调各个组件完成咨询流程
         """
         # 1. 检查是否与咨询相关
-        is_consultation = await self.consultation_classifier.is_consultation_related(user_input)
+        is_consultation = preclassified or await self.consultation_classifier.is_consultation_related(user_input)
         
         if not is_consultation:
             # 2. 处理与咨询无关的请求

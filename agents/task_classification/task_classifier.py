@@ -15,6 +15,7 @@
 from langchain.prompts import PromptTemplate
 from langchain_core.language_models.chat_models import BaseChatModel
 from typing import Dict, Any
+from .intent_rules import classify_obvious_intent
 
 
 class TaskClassifier:
@@ -61,6 +62,10 @@ class TaskClassifier:
         Returns:
             str: 分类结果 ('appointment', 'query', 'pay', 'statistics', 'other')
         """
+        obvious_category = classify_obvious_intent(task)
+        if obvious_category is not None:
+            return obvious_category
+
         try:
             category_msg = await self.chain.ainvoke({"task": task})
             category = category_msg.content.strip().lower()

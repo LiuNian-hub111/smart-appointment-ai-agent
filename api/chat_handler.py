@@ -1,6 +1,7 @@
 from agents.task_classification_agent import TaskClassificationAgent
 from agents.appointment_agent import AppointmentAgent
 from agents.consultant_agent import ConsultantAgent
+from services.common_faq import answer_common_question
 import uuid
 
 # 全局session_id用于单用户场景
@@ -21,6 +22,14 @@ async def ProcessUserInput_stream(user_input, state=None, context=None):
     # 初始化 context
     if context is None:
         context = {}
+
+    # Fixed price and booking-process facts can be read directly from the
+    # knowledge base, avoiding slow or rate-limited model calls.
+    if task_agent.state_manager.should_classify():
+        faq_answer = answer_common_question(user_input)
+        if faq_answer is not None:
+            yield f"[REPLY][咨询机器人]{faq_answer}"
+            return
 
     async for token in task_agent.classify_task_stream(user_input):
         yield token

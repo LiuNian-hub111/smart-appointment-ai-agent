@@ -90,7 +90,7 @@ class AgentRouter:
         # 调用咨询Agent
         try:
             async with self.consultant_agent as agent:
-                async for token in agent.consult_stream(task):
+                async for token in agent.consult_stream(task, preclassified=True):
                     yield token
         except Exception as e:
             yield f"[ERROR]咨询处理失败: {str(e)}"

@@ -58,11 +58,13 @@ def create_chat_model(temperature: float = 0):
         )
 
     if provider in CHAT_PROVIDERS:
+        # 智谱 OpenAI 兼容接口要求 temperature 大于 0；分类器原先传入 0。
+        provider_temperature = max(temperature, 0.01) if provider == "zhipu" else temperature
         return ChatOpenAI(
             model=_env("LLM_MODEL", "qwen-plus") or "qwen-plus",
             api_key=SecretStr(_env("LLM_API_KEY", "") or ""),
             base_url=_env("LLM_BASE_URL"),
-            temperature=temperature,
+            temperature=provider_temperature,
         )
 
     raise ValueError(
