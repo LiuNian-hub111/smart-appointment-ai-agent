@@ -1,4 +1,7 @@
 from dotenv import load_dotenv
+import json
+import logging
+from time import perf_counter
 import uuid
 from langchain_core.chat_history import InMemoryChatMessageHistory
 from config.model_provider import create_chat_model
@@ -9,8 +12,10 @@ from .appointment import (
     MessageBuilder,
     AppointmentDatabase
 )
+from .appointment.booking_rules import parse_explicit_booking
 
 load_dotenv()
+logger = logging.getLogger(__name__)
 
 
 class AppointmentAgent:
@@ -91,14 +96,22 @@ class AppointmentAgent:
         if user_input is None:
             user_input = input("用户：")
 
-        # 1. 解析用户输入（内部 JSON，不向用户流式输出，避免英文字段名暴露在聊天界面）
-        ai_content = ""
-        for token in self.input_parser.parse_stream(user_input, self.chat_history):
-            ai_content += token
+        # 1. 明确的约课信息直接解析，其余输入交给模型处理。
+        parse_started = perf_counter()
+        data = None if self.appointment_history.get("awaiting_confirmation") else parse_explicit_booking(user_input)
+        if data is not None:
+            self.chat_history.add_user_message(user_input)
+            self.chat_history.add_ai_message(json.dumps(data, ensure_ascii=False))
+            logger.info("本地预约信息提取耗时 %.2f 秒", perf_counter() - parse_started)
+        else:
+            ai_content = ""
+            for token in self.input_parser.parse_stream(user_input, self.chat_history):
+                ai_content += token
+            logger.info("模型预约信息提取耗时 %.2f 秒", perf_counter() - parse_started)
+            data = self.input_parser.parse_data(ai_content)
 
         try:
-            # 2. 解析AI返回的数据
-            data = self.input_parser.parse_data(ai_content)
+            # 2. 更新本轮预约信息
             self.finished = self.appointment_processor.update_history_from_data(self.appointment_history, data)
 
             # 3. 处理与预约无关的请求
@@ -118,6 +131,7 @@ class AppointmentAgent:
 
             # 4. 处理预约完成的情况
             if self.finished:
+                booking_started = perf_counter()
                 recommendation_pending = False
                 async for token in self.appointment_processor.handle_complete_appointment(
                     self.appointment_history, self.session_id
@@ -129,6 +143,7 @@ class AppointmentAgent:
                         self.finished = False
                         continue
                     yield token
+                logger.info("老师匹配与约课处理耗时 %.2f 秒", perf_counter() - booking_started)
 
                 # 只有在真正完成预约时才重置状态
                 if not recommendation_pending and not self.appointment_history.get('awaiting_confirmation'):
