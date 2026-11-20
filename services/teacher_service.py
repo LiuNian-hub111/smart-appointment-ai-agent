@@ -1,4 +1,4 @@
-# utils/ai/teacher_service.py
+# services/teacher_service.py
 
 from typing import List, Dict, Any
 from db.db_router import DatabaseRouter
@@ -7,7 +7,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 class TeacherService:
-    """老师数据服务；沿用原项目的内部类名和数据库表名。"""
+    """老师资料与排班查询服务。"""
 
     def __init__(self):
         self.db = DatabaseRouter()
