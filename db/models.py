@@ -6,23 +6,23 @@ from datetime import datetime
 
 Base = declarative_base()
 
-class Technician(Base):
-    __tablename__ = 'technicians'
+class Teacher(Base):
+    __tablename__ = 'teachers'
     id = Column(Integer, primary_key=True)
     name = Column(String, unique=True)
-    gender = Column(String, nullable=True)      # 新增性别字段
-    strength = Column(String, nullable=True)    # 新增力气/倾向性字段
-    schedules = relationship("TechnicianSchedule", back_populates="technician", cascade="all, delete-orphan")
+    gender = Column(String, nullable=True)      # 可选字段，不参与约课必填校验
+    strength = Column(String, nullable=True)    # 教学专长（沿用既有数据库字段）
+    schedules = relationship("TeacherSchedule", back_populates="teacher", cascade="all, delete-orphan")
 
-class TechnicianSchedule(Base):
-    __tablename__ = 'technician_schedules'
+class TeacherSchedule(Base):
+    __tablename__ = 'teacher_schedules'
     id = Column(Integer, primary_key=True)
-    technician_id = Column(Integer, ForeignKey('technicians.id'))
+    teacher_id = Column(Integer, ForeignKey('teachers.id'))
     start_time = Column(DateTime, nullable=False)
     end_time = Column(DateTime, nullable=False)
     status = Column(String, nullable=False)  # 'busy' or 'free'
     appointment_id = Column(Integer, nullable=True)
-    technician = relationship("Technician", back_populates="schedules")
+    teacher = relationship("Teacher", back_populates="schedules")
 
 class KnowledgeDocument(Base):
     __tablename__ = 'knowledge_documents'
@@ -41,16 +41,16 @@ class UserBehavior(Base):
     user_id = Column(String, nullable=False, default='default_user')  # 单用户场景使用默认用户ID
     action_type = Column(String, nullable=False)  # 'appointment', 'consultation', 'inquiry'
     action_data = Column(JSON, nullable=True)  # 存储行为相关的详细数据
-    technician_id = Column(Integer, ForeignKey('technicians.id'), nullable=True)
+    teacher_id = Column(Integer, ForeignKey('teachers.id'), nullable=True)
     session_id = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
-    technician = relationship("Technician")
+    teacher = relationship("Teacher")
 
 class UserPreference(Base):
     __tablename__ = 'user_preferences'
     id = Column(Integer, primary_key=True)
     user_id = Column(String, nullable=False, default='default_user')
-    preference_type = Column(String, nullable=False)  # 'technician', 'time', 'service', 'duration'
+    preference_type = Column(String, nullable=False)  # 'teacher', 'time', 'service', 'duration'
     preference_value = Column(String, nullable=False)
     confidence_score = Column(Integer, default=1)  # 偏好的置信度（出现次数）
     last_updated = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -59,10 +59,10 @@ class UserRecommendation(Base):
     __tablename__ = 'user_recommendations'
     id = Column(Integer, primary_key=True)
     user_id = Column(String, nullable=False, default='default_user')
-    recommendation_type = Column(String, nullable=False)  # 'technician_available', 'return_reminder', 'service_suggestion'
+    recommendation_type = Column(String, nullable=False)  # 'teacher_available', 'return_reminder', 'service_suggestion'
     content = Column(Text, nullable=False)
-    technician_id = Column(Integer, ForeignKey('technicians.id'), nullable=True)
+    teacher_id = Column(Integer, ForeignKey('teachers.id'), nullable=True)
     is_sent = Column(Integer, default=0)  # 是否已发送
     created_at = Column(DateTime, default=datetime.utcnow)
     sent_at = Column(DateTime, nullable=True)
-    technician = relationship("Technician")
+    teacher = relationship("Teacher")

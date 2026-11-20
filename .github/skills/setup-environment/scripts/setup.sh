@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# One-shot environment bootstrapper for the Smart Appointment AI Agent (macOS / Linux).
+# One-shot environment bootstrapper for the physics tutoring booking Agent (macOS / Linux).
 #
 # Flags:
 #   --force        recreate .venv from scratch

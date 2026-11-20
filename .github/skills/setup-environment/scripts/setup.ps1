@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  One-shot environment bootstrapper for the Smart Appointment AI Agent (Windows).
+  One-shot environment bootstrapper for the physics tutoring booking Agent (Windows).
 
 .DESCRIPTION
   - Validates Python >= 3.10

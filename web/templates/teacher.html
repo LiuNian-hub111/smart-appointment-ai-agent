@@ -248,7 +248,7 @@
             <div class="stats-grid">
                 <div class="stat-card">
                     <i class="fas fa-users"></i>
-                    <div class="number">{{ technicians|length }}</div>
+                    <div class="number">{{ teachers|length }}</div>
                     <div class="label">演示老师数</div>
                 </div>
             </div>
@@ -264,7 +264,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for tech in technicians %}
+                        {% for tech in teachers %}
                         <tr>
                             <td><strong>{{ tech.id }}</strong></td>
                             <td>{{ tech.name }}</td>

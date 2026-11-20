@@ -8,7 +8,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from services.knowledge_service import KnowledgeService
-from services.technician_service import TechnicianService
+from services.teacher_service import TeacherService
 from services.recommendation_service import RecommendationService
 from typing import List, Optional
 import logging
@@ -40,17 +40,17 @@ async def initialize_system():
     """系统启动时自动初始化"""
     try:
         logger.info("🚀 正在初始化物理辅导约课系统...")
-        
+
         # 初始化知识库服务
         logger.info("📚 初始化知识库服务...")
         knowledge_service = KnowledgeService()
         await knowledge_service.initialize()
-        
-        # 初始化技师服务
+
+        # 初始化老师服务
         logger.info("👩‍🏫 初始化演示老师数据...")
-        technician_service = TechnicianService()
-        technician_service.initialize_default_technicians()
-        
+        teacher_service = TeacherService()
+        teacher_service.initialize_default_teachers()
+
         # 初始化推荐服务
         logger.info("🎯 启动推荐调度服务...")
         recommendation_service = RecommendationService()
@@ -58,16 +58,16 @@ async def initialize_system():
             logger.info("✅ 推荐调度服务启动成功")
         else:
             logger.warning("⚠️ 推荐调度服务启动失败")
-        
+
         logger.info("✅ 系统初始化完成！")
-        
+
     except Exception as e:
         logger.error(f"❌ 系统初始化失败: {e}")
         raise
 
 def create_app() -> FastAPI:
     """创建FastAPI应用实例"""
-    
+
     app = FastAPI(
         title="物理辅导约课 Agent",
         description="提供物理课程咨询、老师排班和约课管理的API服务",

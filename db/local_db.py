@@ -5,7 +5,7 @@
 建议逐步迁移到新的 DatabaseRouter 和 Repository 模式。
 """
 
-from .repositories import UserBehaviorRepository, TechnicianRepository
+from .repositories import UserBehaviorRepository, TeacherRepository
 from .base import SessionManager
 from typing import Dict, List, Any, Optional
 import warnings
@@ -14,10 +14,10 @@ import warnings
 class LocalUserBehaviorDB:
     """
     用户行为数据库的兼容性类
-    
+
     将旧接口重定向到新的UserBehaviorRepository
     """
-    
+
     def __init__(self, db_path='sqlite:///data/smart_appointment.db'):
         warnings.warn(
             "LocalUserBehaviorDB已弃用，请使用 DatabaseRouter().user_behavior 或 UserBehaviorRepository",
@@ -27,13 +27,13 @@ class LocalUserBehaviorDB:
         self.session_manager = SessionManager(db_path)
         self.repo = UserBehaviorRepository(self.session_manager)
 
-    def record_user_behavior(self, action_type: str, action_data: Optional[Dict[str, Any]] = None, 
-                            technician_id: Optional[int] = None, session_id: Optional[str] = None, 
+    def record_user_behavior(self, action_type: str, action_data: Optional[Dict[str, Any]] = None,
+                            teacher_id: Optional[int] = None, session_id: Optional[str] = None,
                             user_id: str = 'default_user'):
         """兼容性方法：记录用户行为"""
-        return self.repo.record_behavior(user_id, action_type, action_data, technician_id, session_id)
+        return self.repo.record_behavior(user_id, action_type, action_data, teacher_id, session_id)
 
-    def get_user_behaviors(self, user_id: str = 'default_user', action_type: Optional[str] = None, 
+    def get_user_behaviors(self, user_id: str = 'default_user', action_type: Optional[str] = None,
                           days_back: Optional[int] = None) -> List[Dict[str, Any]]:
         """兼容性方法：获取用户行为历史"""
         return self.repo.get_user_behaviors(user_id, action_type, days_back)
@@ -46,10 +46,10 @@ class LocalUserBehaviorDB:
         """兼容性方法：获取用户偏好"""
         return self.repo.get_user_preferences(user_id, preference_type)
 
-    def create_recommendation(self, recommendation_type: str, content: str, 
-                            technician_id: Optional[int] = None, user_id: str = 'default_user'):
+    def create_recommendation(self, recommendation_type: str, content: str,
+                            teacher_id: Optional[int] = None, user_id: str = 'default_user'):
         """兼容性方法：创建推荐"""
-        return self.repo.create_recommendation(user_id, recommendation_type, content, technician_id)
+        return self.repo.create_recommendation(user_id, recommendation_type, content, teacher_id)
 
     def get_pending_recommendations(self, user_id: str = 'default_user') -> List[Dict[str, Any]]:
         """兼容性方法：获取待发送的推荐"""
@@ -64,57 +64,57 @@ class LocalUserBehaviorDB:
         return self.repo.get_user_statistics(user_id, days_back)
 
 
-class LocalTechnicianDB:
+class LocalTeacherDB:
     """
-    技师数据库的兼容性类
-    
-    将旧接口重定向到新的TechnicianRepository
+    老师数据库的兼容性类
+
+    将旧接口重定向到新的TeacherRepository
     """
-    
+
     def __init__(self, db_path='sqlite:///data/smart_appointment.db'):
         warnings.warn(
-            "LocalTechnicianDB已弃用，请使用 DatabaseRouter().technicians 或 TechnicianRepository",
+            "LocalTeacherDB已弃用，请使用 DatabaseRouter().teachers 或 TeacherRepository",
             DeprecationWarning,
             stacklevel=2
         )
         self.session_manager = SessionManager(db_path)
-        self.repo = TechnicianRepository(self.session_manager)
+        self.repo = TeacherRepository(self.session_manager)
 
-    def get_technician_by_name(self, session, name: str):
-        """兼容性方法：根据姓名获取技师信息"""
-        return self.repo.get_technician_by_name(name)
+    def get_teacher_by_name(self, session, name: str):
+        """兼容性方法：根据姓名获取老师信息"""
+        return self.repo.get_teacher_by_name(name)
 
-    def get_all_technicians(self, session):
-        """兼容性方法：获取所有技师"""
-        return self.repo.get_all_technicians()
+    def get_all_teachers(self, session):
+        """兼容性方法：获取所有老师"""
+        return self.repo.get_all_teachers()
 
     def get_all_strengths(self, session):
-        """兼容性方法：获取所有技师专长"""
+        """兼容性方法：获取所有老师专长"""
         return self.repo.get_all_strengths()
 
-    def add_technician(self, session, name: str, gender: Optional[str] = None, strength: Optional[str] = None):
-        """兼容性方法：添加技师"""
-        return self.repo.add_technician(name, gender, strength)
+    def add_teacher(self, session, name: str, gender: Optional[str] = None, strength: Optional[str] = None):
+        """兼容性方法：添加老师"""
+        return self.repo.add_teacher(name, gender, strength)
 
-    def add_schedule(self, session, technician_id: int, start_time, end_time, status: str, appointment_id: Optional[int] = None):
+    def add_schedule(self, session, teacher_id: int, start_time, end_time, status: str, appointment_id: Optional[int] = None):
         """兼容性方法：添加排班"""
-        return self.repo.add_schedule(technician_id, start_time, end_time, status, appointment_id)
+        return self.repo.add_schedule(teacher_id, start_time, end_time, status, appointment_id)
 
-    def get_technician_schedules(self, session, technician_id: int, date):
-        """兼容性方法：获取技师排班"""
-        return self.repo.get_technician_schedules(technician_id, date)
+    def get_teacher_schedules(self, session, teacher_id: int, date):
+        """兼容性方法：获取老师排班"""
+        return self.repo.get_teacher_schedules(teacher_id, date)
 
-    def is_technician_available(self, session, technician_id: int, start_time, end_time) -> bool:
-        """兼容性方法：检查技师是否可用"""
-        return self.repo.is_technician_available(technician_id, start_time, end_time)
+    def is_teacher_available(self, session, teacher_id: int, start_time, end_time) -> bool:
+        """兼容性方法：检查老师是否可用"""
+        return self.repo.is_teacher_available(teacher_id, start_time, end_time)
 
-    def get_technicians_by_gender(self, session, gender: str):
-        """兼容性方法：根据性别获取技师"""
-        return self.repo.get_technicians_by_gender(gender)
+    def get_teachers_by_gender(self, session, gender: str):
+        """兼容性方法：根据性别获取老师"""
+        return self.repo.get_teachers_by_gender(gender)
 
 
 # 为了完全兼容，也提供从原始base_db模块导入的接口
-class BaseTechnicianDB:
+class BaseTeacherDB:
     """兼容性基类"""
     pass
 
@@ -127,7 +127,7 @@ class LocalKnowledgeDB:
     """
     知识库数据库的兼容性类
     """
-    
+
     def __init__(self, db_path='sqlite:///data/smart_appointment.db'):
         warnings.warn(
             "LocalKnowledgeDB已弃用，请使用 DatabaseRouter().knowledge 或 KnowledgeRepository",
@@ -150,7 +150,7 @@ class LocalKnowledgeDB:
         """兼容性方法：获取所有文档"""
         return self.repo.get_all_documents(include_inactive)
 
-    def update_document(self, doc_id: int, content: Optional[str] = None, category: Optional[str] = None, 
+    def update_document(self, doc_id: int, content: Optional[str] = None, category: Optional[str] = None,
                        keywords: Optional[List[str]] = None, embedding: Optional[List[float]] = None) -> bool:
         """兼容性方法：更新文档"""
         return self.repo.update_document(doc_id, content, category, keywords, embedding)

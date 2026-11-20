@@ -1,6 +1,6 @@
 ---
 name: setup-environment
-description: One-shot environment bootstrapper for the Smart Appointment AI Agent. Creates a Python virtual environment, installs dependencies from requirements.txt, scaffolds a .env file with generic OpenAI-compatible LLM / embedding / OpenWeather keys, prepares the data directory, and verifies the install. Use when user says "setup environment", "一键配置", "初始化环境", "install deps", "配置环境", "setup", "bootstrap", "搭建环境", or whenever a fresh checkout needs to be made runnable.
+description: One-shot environment bootstrapper for the physics tutoring booking Agent. Creates a Python virtual environment, installs dependencies from requirements.txt, scaffolds a .env file with generic OpenAI-compatible chat and embedding settings, prepares the data directory, and verifies the install. Use when user says "setup environment", "一键配置", "初始化环境", "install deps", "配置环境", "setup", "bootstrap", "搭建环境", or whenever a fresh checkout needs to be made runnable.
 ---
 
 # Setup Environment
@@ -100,7 +100,7 @@ Before installing dependencies or launching the app, ensure `.env` has real mode
 This project uses **two different model capabilities**:
 
 1. **Chat LLM**: used by the appointment, consultation, task-classification, and user-behavior agents to understand user messages and generate replies.
-2. **Embedding model**: used by RAG retrieval and technician similarity matching to convert text into vectors.
+2. **Embedding model**: used by RAG retrieval and teacher similarity matching to convert text into vectors.
 
 Do not assume every provider offers both. Chat and embedding settings are intentionally separated in `.env`:
 

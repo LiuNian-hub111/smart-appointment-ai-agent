@@ -50,8 +50,8 @@ def test_knowledge_item_accepts_free_content_but_rejects_blank_content(knowledge
     with pytest.raises(ValidationError):
         knowledge_module.KnowledgeItem()
 
-    item = knowledge_module.KnowledgeItem(content=" 肩颈推拿 60 分钟 ", category="服务项目")
-    assert item.content == "肩颈推拿 60 分钟"
+    item = knowledge_module.KnowledgeItem(content=" 高中力学辅导 60 分钟 ", category="课程内容")
+    assert item.content == "高中力学辅导 60 分钟"
 
 
 def test_add_knowledge_passes_question_and_answer_to_service(knowledge_module, monkeypatch):
@@ -96,14 +96,14 @@ def test_free_content_add_and_update_reach_service(knowledge_module, monkeypatch
     fake_module = types.ModuleType("services.knowledge_service")
     fake_module.KnowledgeService = FakeKnowledgeService
     monkeypatch.setitem(sys.modules, "services.knowledge_service", fake_module)
-    payload = {"content": " 肩颈推拿 60 分钟 ", "category": "服务项目", "keywords": ["肩颈", "推拿"]}
+    payload = {"content": " 高中力学辅导 60 分钟 ", "category": "课程内容", "keywords": ["高中", "力学"]}
     item = knowledge_module.KnowledgeItem.model_validate(payload)
 
     assert complete_without_io(knowledge_module.add_knowledge(item))["status"] == "success"
     assert complete_without_io(knowledge_module.update_knowledge(7, item))["status"] == "success"
     assert calls == [
-        ("add", {"content": "肩颈推拿 60 分钟", "category": "服务项目", "keywords": ["肩颈", "推拿"]}),
-        ("update", {"doc_id": 7, "content": "肩颈推拿 60 分钟", "category": "服务项目", "keywords": ["肩颈", "推拿"]}),
+        ("add", {"content": "高中力学辅导 60 分钟", "category": "课程内容", "keywords": ["高中", "力学"]}),
+        ("update", {"doc_id": 7, "content": "高中力学辅导 60 分钟", "category": "课程内容", "keywords": ["高中", "力学"]}),
     ]
 
 

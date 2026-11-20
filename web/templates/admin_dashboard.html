@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>系统概览 - 物理辅导约课助手</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; color: #243246; }
+    nav a { margin-right: 18px; }
+    section { padding: 18px; border: 1px solid #dce6f0; border-radius: 12px; margin: 20px 0; }
+    .notice { color: #8a4a00; }
+  </style>
+</head>
+<body>
+  <nav><a href="/">聊天首页</a><a href="/knowledge">知识库</a><a href="/teacher">老师信息</a><a href="/teacher_schedule">老师排班</a></nav>
+  <h1>物理辅导约课系统概览</h1>
+  <p class="notice">本页展示本地演示数据，尚未配置管理员登录。</p>
+  {% if error %}<p class="notice">读取统计信息失败：{{ error }}</p>{% endif %}
+  <section>
+    <h2>当前数据</h2>
+    <p>知识条目：{{ db_info.knowledge_count | default(0) }}</p>
+    <p>知识分类：{{ db_info.categories_count | default(0) }}</p>
+    <p>演示老师：{{ db_info.teachers_count | default(0) }}</p>
+  </section>
+  <section>
+    <h2>老师</h2>
+    <ul>{% for teacher in teachers %}<li>{{ teacher.name }}：{{ teacher.strength }}</li>{% else %}<li>暂无老师资料</li>{% endfor %}</ul>
+  </section>
+</body>
+</html>

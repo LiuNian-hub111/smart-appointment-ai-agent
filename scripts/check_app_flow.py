@@ -12,7 +12,7 @@ from app import app
 
 def main() -> int:
     with TestClient(app) as client:
-        for path in ("/", "/api/knowledge/", "/api/technicians/"):
+        for path in ("/", "/api/knowledge/", "/api/teachers/"):
             response = client.get(path)
             print(f"GET {path}: {response.status_code}")
             if response.status_code != 200:

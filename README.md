@@ -47,10 +47,10 @@ Copy-Item .env.example .env
 离线测试命令：
 
 ```powershell
-.venv\Scripts\python.exe -m pytest tests/test_intent_rules_offline.py tests/test_common_faq_offline.py tests/test_lesson_booking_offline.py tests/test_knowledge_api_offline.py -q
+.venv\Scripts\python.exe -m pytest tests/test_teacher_schema_migration.py tests/test_intent_rules_offline.py tests/test_common_faq_offline.py tests/test_lesson_booking_offline.py tests/test_knowledge_api_offline.py -q
 ```
 
-本地运行结果：**12 passed，6 warnings**。测试覆盖知识接口输入校验、知识写入与读取、常见问题快捷回复、明确预约意图分类，以及同一老师的重叠时间冲突。
+本地运行结果：**14 passed，6 warnings**。测试覆盖旧数据库迁移、知识接口输入校验、知识写入与读取、常见问题快捷回复、明确预约意图分类，以及同一老师的重叠时间冲突。
 
 另外完成过一次本地网页联调：先将演示老师 A 的 `2026-12-01 15:00–16:30` 保存为 `busy`；再请求老师 A 的 `15:30–16:30` 时，系统识别冲突并推荐演示老师 C。用户确认后，数据库新增老师 C 的预约，老师 A 没有第二条重叠记录。演示数据保存在本机数据库中，不随仓库提交。
 
@@ -60,7 +60,7 @@ Copy-Item .env.example .env
 - 开放式咨询及预约信息提取依赖模型服务；服务商限流时可能等待较久或失败。
 - 当前为单用户本地原型；会话状态未按用户隔离，知识管理页面也尚无权限控制。
 - 冲突检查是“先查再写”，尚无数据库级原子防重，不适用于多人同时抢同一时段。
-- 部分内部类名和接口路径仍保留原项目的“技师”命名。
+- 原有本地数据库会在启动时迁移为 `teachers` / `teacher_schedules`；迁移前建议备份数据库。`strength` 等少量数据库字段沿用旧结构，含义在本项目中是教学专长。
 
 ## 主要代码位置
 
@@ -70,6 +70,6 @@ Copy-Item .env.example .env
 | 任务分类与预约分流 | `agents/task_classification/` |
 | 咨询与知识检索 | `agents/consultant/`、`services/knowledge_service.py` |
 | 约课解析、老师匹配和保存 | `agents/appointment/`、`services/appointment_service.py` |
-| 老师课表与冲突查询 | `db/repositories/technician_repository.py` |
+| 老师课表与冲突查询 | `db/repositories/teacher_repository.py` |
 
 原项目的架构说明与完整历史可在[上游仓库](https://github.com/jerry-ai-dev/smart-appointment-ai-agent)查看。

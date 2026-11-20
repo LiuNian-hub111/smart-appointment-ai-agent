@@ -1,36 +1,36 @@
 from .base import SessionManager
-from .repositories import TechnicianRepository, KnowledgeRepository, UserBehaviorRepository
+from .repositories import TeacherRepository, KnowledgeRepository, UserBehaviorRepository
 from typing import Optional
 
 
 class DatabaseRouter:
     """
     数据库路由器
-    
+
     职责：
     1. 管理数据库连接和会话
     2. 提供统一的数据访问入口
     3. 协调各个Repository的操作
     """
-    
+
     def __init__(self, db_path: str = 'sqlite:///data/smart_appointment.db'):
         """
         初始化数据库路由器
-        
+
         Args:
             db_path: 数据库连接路径
         """
         self.session_manager = SessionManager(db_path)
-        
+
         # 初始化各个Repository
-        self.technician_repo = TechnicianRepository(self.session_manager)
+        self.teacher_repo = TeacherRepository(self.session_manager)
         self.knowledge_repo = KnowledgeRepository(self.session_manager)
         self.user_behavior_repo = UserBehaviorRepository(self.session_manager)
 
     @property
-    def technicians(self) -> TechnicianRepository:
-        """获取技师数据仓库"""
-        return self.technician_repo
+    def teachers(self) -> TeacherRepository:
+        """获取老师数据仓库"""
+        return self.teacher_repo
 
     @property
     def knowledge(self) -> KnowledgeRepository:
@@ -48,54 +48,54 @@ class DatabaseRouter:
 
 
 # 为了兼容性，保留原有的类名
-class TechnicianDBRouter:
+class TeacherDBRouter:
     """
-    技师数据库路由器（兼容性类）
-    
+    老师数据库路由器（兼容性类）
+
     为保持向后兼容，继续支持原有的接口
     """
-    
+
     def __init__(self, db_type='local', **kwargs):
         self.db_router = DatabaseRouter(**kwargs)
-        self.technician_repo = self.db_router.technicians
+        self.teacher_repo = self.db_router.teachers
 
-    # 技师相关方法
-    def add_technician(self, name, gender=None, strength=None) -> None:
-        return self.technician_repo.add_technician(name, gender, strength)
+    # 老师相关方法
+    def add_teacher(self, name, gender=None, strength=None) -> None:
+        return self.teacher_repo.add_teacher(name, gender, strength)
 
-    def get_technician_by_name(self, name: str):
-        return self.technician_repo.get_technician_by_name(name)
+    def get_teacher_by_name(self, name: str):
+        return self.teacher_repo.get_teacher_by_name(name)
 
-    def get_technician_by_id(self, technician_id: int):
-        return self.technician_repo.get_technician_by_id(technician_id)
+    def get_teacher_by_id(self, teacher_id: int):
+        return self.teacher_repo.get_teacher_by_id(teacher_id)
 
-    def get_all_technicians(self):
-        return self.technician_repo.get_all_technicians()
+    def get_all_teachers(self):
+        return self.teacher_repo.get_all_teachers()
 
     def get_all_strengths(self):
-        return self.technician_repo.get_all_strengths()
+        return self.teacher_repo.get_all_strengths()
 
     # 排班相关方法
-    def add_schedule(self, technician_id: int, start_time, end_time, status, appointment_id=None) -> None:
-        return self.technician_repo.add_schedule(technician_id, start_time, end_time, status, appointment_id)
+    def add_schedule(self, teacher_id: int, start_time, end_time, status, appointment_id=None) -> None:
+        return self.teacher_repo.add_schedule(teacher_id, start_time, end_time, status, appointment_id)
 
-    def get_technician_schedules(self, technician_id: int, date):
-        return self.technician_repo.get_technician_schedules(technician_id, date)
+    def get_teacher_schedules(self, teacher_id: int, date):
+        return self.teacher_repo.get_teacher_schedules(teacher_id, date)
 
-    def is_technician_available(self, technician_id: int, start_time, end_time) -> bool:
-        return self.technician_repo.is_technician_available(technician_id, start_time, end_time)
+    def is_teacher_available(self, teacher_id: int, start_time, end_time) -> bool:
+        return self.teacher_repo.is_teacher_available(teacher_id, start_time, end_time)
 
-    def get_technicians_by_gender(self, gender: str):
-        return self.technician_repo.get_technicians_by_gender(gender)
+    def get_teachers_by_gender(self, gender: str):
+        return self.teacher_repo.get_teachers_by_gender(gender)
 
 
 class KnowledgeDBRouter:
     """
     知识库数据库路由器（兼容性类）
-    
+
     为保持向后兼容，继续支持原有的接口
     """
-    
+
     def __init__(self, db_type='local', **kwargs):
         self.db_router = DatabaseRouter(**kwargs)
         self.knowledge_repo = self.db_router.knowledge
@@ -131,16 +131,16 @@ class KnowledgeDBRouter:
 class UserBehaviorDBRouter:
     """
     用户行为数据库路由器（兼容性类）
-    
+
     为保持向后兼容，继续支持原有的接口
     """
-    
+
     def __init__(self, db_type='local', **kwargs):
         self.db_router = DatabaseRouter(**kwargs)
         self.user_behavior_repo = self.db_router.user_behavior
 
-    def record_behavior(self, user_id: str, action_type: str, action_data=None, technician_id=None, session_id=None) -> int:
-        return self.user_behavior_repo.record_behavior(user_id, action_type, action_data, technician_id, session_id)
+    def record_behavior(self, user_id: str, action_type: str, action_data=None, teacher_id=None, session_id=None) -> int:
+        return self.user_behavior_repo.record_behavior(user_id, action_type, action_data, teacher_id, session_id)
 
     def get_user_behaviors(self, user_id: str, action_type=None, days_back=None):
         return self.user_behavior_repo.get_user_behaviors(user_id, action_type, days_back)
