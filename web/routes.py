@@ -6,9 +6,11 @@ Web界面路由
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from uuid import UUID, uuid4
 from api.chat_handler import ProcessUserInput_stream
 import logging
+from config.booking_context import prepare_booking
 
 # 创建logger实例
 logger = logging.getLogger(__name__)
@@ -20,6 +22,7 @@ router = APIRouter(tags=["Web界面"])
 
 class ChatRequest(BaseModel):
     message: str
+    conversation_id: UUID = Field(default_factory=uuid4)
     state: str | None = None
 
 @router.get("/", response_class=HTMLResponse, summary="主页")
@@ -31,16 +34,24 @@ async def read_root(request: Request):
 async def chat_stream_endpoint(chat: ChatRequest):
     """处理流式聊天请求"""
     async def token_generator():
-        async for token in ProcessUserInput_stream(chat.message):
-            yield token
+        setting = prepare_booking.set(True)
+        try:
+            async for token in ProcessUserInput_stream(chat.message, conversation_id=str(chat.conversation_id)):
+                yield token
+        finally:
+            prepare_booking.reset(setting)
     return StreamingResponse(token_generator(), media_type="text/plain")
 
 @router.post("/chat", summary="兼容性聊天接口")
 async def chat_endpoint(chat: ChatRequest):
     """兼容性聊天接口，建议使用/chat/stream"""
     async def token_generator():
-        async for token in ProcessUserInput_stream(chat.message):
-            yield token
+        setting = prepare_booking.set(True)
+        try:
+            async for token in ProcessUserInput_stream(chat.message, conversation_id=str(chat.conversation_id)):
+                yield token
+        finally:
+            prepare_booking.reset(setting)
     return StreamingResponse(token_generator(), media_type="text/plain")
 
 @router.get("/user_behavior", response_class=HTMLResponse, summary="用户行为分析页面")

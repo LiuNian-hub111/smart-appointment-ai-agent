@@ -1,10 +1,13 @@
 """Fast classification for unambiguous booking requests."""
+from services.automatic_memory import learning_statement
 
 
 def classify_obvious_intent(task: str) -> str | None:
     text = "".join(task.split())
     if not text:
         return None
+    if learning_statement(task):
+        return 'query'
 
     # Questions about price or the booking process are consultations, even
     # when they contain the word "预约".

@@ -369,6 +369,7 @@
             <div class="header-title">
                 <i class="fas fa-robot"></i>
                 物理辅导约课助手
+                <small style="display:block;font-size:13px;font-weight:normal">本地演示账号：所有页面共享课程偏好，约课进度按对话区分</small>
             </div>
             <div class="header-subtitle">
                 咨询物理课程、查看老师档期、预约上课
@@ -452,6 +453,73 @@
     const clearBtn = document.getElementById('clear-btn');
     const typingIndicator = document.getElementById('typing-indicator');
     let lastBotBubble = null;
+    // Resume this tab's conversation after refresh or server restart.
+    let conversationId = sessionStorage.getItem('lesson-conversation-id') || crypto.randomUUID();
+    sessionStorage.setItem('lesson-conversation-id', conversationId);
+    const bookingStorageKey = 'pending-lesson-confirmations';
+    let pendingBookings = [];
+    try { pendingBookings = JSON.parse(sessionStorage.getItem(bookingStorageKey) || '[]'); }
+    catch (_) { pendingBookings = []; }
+    function persistBookings() {
+        sessionStorage.setItem(bookingStorageKey, JSON.stringify(pendingBookings));
+    }
+    function showBookingCard(booking) {
+        const card = document.createElement('div');
+        card.className = 'bubble';
+        const summary = document.createElement('p');
+        summary.textContent = `${booking.teacher_name} · ${booking.course} · ${booking.start_time} 至 ${booking.end_time}（北京时间）`;
+        const status = document.createElement('p');
+        status.textContent = '尚未确认保存。';
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = '确认约课';
+        button.onclick = async () => {
+            if (button.disabled) return;
+            button.disabled = true;
+            status.textContent = '正在确认，请稍候…';
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 15000);
+            try {
+                const {teacher_name, ...payload} = booking;
+                const response = await fetch('/api/bookings/confirm', {
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload), signal: controller.signal
+                });
+                const result = await response.json();
+                if (!response.ok) {
+                    if (response.status === 409 || response.status === 404 || response.status === 422) {
+                        status.textContent = typeof result.detail === 'string' ? result.detail : '约课信息有误，请重新发起约课。';
+                        pendingBookings = pendingBookings.filter(item => item.request_id !== booking.request_id);
+                        persistBookings();
+                        button.textContent = '请重新发起约课';
+                        return;
+                    }
+                    throw new Error('confirmation unavailable');
+                }
+                status.textContent = `约课成功！预约记录：${result.schedule_id}。重复确认会返回同一结果。`;
+                button.textContent = '已确认';
+                pendingBookings = pendingBookings.filter(item => item.request_id !== booking.request_id);
+                persistBookings();
+            } catch (_) {
+                status.textContent = '暂时无法确认结果，预约可能已保存。请点击重试查询原结果。';
+                button.textContent = '重试确认';
+                button.disabled = false;
+            } finally {
+                clearTimeout(timer);
+            }
+        };
+        card.append(summary, status, button);
+        chatBox.appendChild(card);
+    }
+    function receiveBooking(text) {
+        const match = text.match(/\[BOOKING\]([\s\S]*?)\[REPLY\]/);
+        if (!match) return;
+        const booking = {...JSON.parse(match[1]), request_id: crypto.randomUUID()};
+        pendingBookings.push(booking);
+        persistBookings();
+        showBookingCard(booking);
+    }
+    pendingBookings.forEach(showBookingCard);
 
     function addMessage(text, sender) {
         const msgDiv = document.createElement('div');
@@ -499,6 +567,7 @@
     }
 
     function updateLastBotMessage(text) {
+        text = text.replace(/\[BOOKING\][\s\S]*?(?=\[REPLY\]|$)/g, '');
         if (lastBotBubble) {
             // 用正则分割所有 [THOUGHT]、[REPLY]、[STATE] 标签及其内容
             const pattern = /(\[THOUGHT[^\]]*\][\s\S]*?)(?=\[THOUGHT|\[REPLY|\[STATE|$)|(\[REPLY[^\]]*\][\s\S]*?)(?=\[THOUGHT|\[REPLY|\[STATE|$)/g;
@@ -548,6 +617,7 @@
         e.preventDefault();
         const text = userInput.value.trim();
         if (!text) return;
+        if (document.getElementById('send-btn').disabled) return;
 
         // 禁用发送按钮
         const sendBtn = document.getElementById('send-btn');
@@ -568,8 +638,9 @@
             const res = await fetch('/chat/stream', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({message: text})
+                body: JSON.stringify({message: text, conversation_id: conversationId})
             });
+            if (!res.ok) throw new Error('chat unavailable');
 
             hideTypingIndicator();
 
@@ -583,6 +654,7 @@
                 botMsg += decoder.decode(value, {stream: true});
                 updateLastBotMessage(botMsg);
             }
+            receiveBooking(botMsg);
         } catch (error) {
             hideTypingIndicator();
             lastBotBubble.innerHTML = '抱歉，服务暂时不可用，请稍后再试。';
@@ -596,10 +668,13 @@
     }
 
     clearBtn.onclick = function() {
+        conversationId = crypto.randomUUID();
+        sessionStorage.setItem('lesson-conversation-id', conversationId);
         // 保留欢迎消息，只清除其他对话
         const welcomeMessage = chatBox.querySelector('.message.bot').cloneNode(true);
         chatBox.innerHTML = '';
         chatBox.appendChild(welcomeMessage);
+        pendingBookings.forEach(showBookingCard);
 
         // 重新设置lastBotBubble为null
         lastBotBubble = null;

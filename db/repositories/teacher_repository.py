@@ -1,5 +1,6 @@
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta
+from sqlalchemy import text
 from ..base.interfaces import BaseTeacherRepository, BaseScheduleRepository
 from ..base.session_manager import SessionManager
 from ..models import Teacher, TeacherSchedule
@@ -170,6 +171,10 @@ class TeacherRepository(BaseTeacherRepository, BaseScheduleRepository):
             raise ValueError("约课结束时间必须晚于开始时间")
         with self.session_manager.session_scope() as session:
             if status == "busy":
+                # SQLite's deferred transaction would let two writers both pass
+                # the conflict query. Reserve the write lock before querying.
+                if session.bind.dialect.name == "sqlite":
+                    session.execute(text("BEGIN IMMEDIATE"))
                 conflict = session.query(TeacherSchedule).filter(
                     TeacherSchedule.teacher_id == teacher_id,
                     TeacherSchedule.status == "busy",

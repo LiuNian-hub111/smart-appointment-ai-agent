@@ -258,6 +258,17 @@ class AppointmentProcessor:
             appointment_history["start_time"],
             appointment_history["duration"]
         )
+        from config.booking_context import prepare_booking
+        if prepare_booking.get():
+            import json
+            proposal = {
+                "teacher_id": int(tech["id"]),
+                "teacher_name": tech["name"],
+                "start_time": start_time.isoformat(),
+                "end_time": end_time.isoformat(),
+                "course": appointment_history["project"],
+            }
+            return "[BOOKING]" + json.dumps(proposal, ensure_ascii=False) + "[REPLY]请核对下方约课信息，点击确认后才会保存。"
         # 保存预约到数据库
         success = self.appointment_database.save_appointment(
             tech["id"], start_time, end_time, appointment_history, session_id

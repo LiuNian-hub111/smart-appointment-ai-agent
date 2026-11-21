@@ -24,6 +24,27 @@ class TeacherSchedule(Base):
     appointment_id = Column(Integer, nullable=True)
     teacher = relationship("Teacher", back_populates="schedules")
 
+class UserMemory(Base):
+    __tablename__ = 'user_memories'
+    user_id = Column(String(128), primary_key=True)
+    preferences = Column(JSON, nullable=False)
+
+
+class ConversationMemory(Base):
+    __tablename__ = 'conversation_memories'
+    conversation_id = Column(String(36), primary_key=True)
+    snapshot = Column(JSON, nullable=False)
+
+
+class BookingRequest(Base):
+    """Successful request receipts committed together with their booking."""
+    __tablename__ = 'booking_requests'
+    request_id = Column(String(128), primary_key=True)
+    payload = Column(Text, nullable=False)
+    schedule_id = Column(Integer, ForeignKey('teacher_schedules.id'), nullable=False)
+    result = Column(JSON, nullable=False)
+
+
 class KnowledgeDocument(Base):
     __tablename__ = 'knowledge_documents'
     id = Column(Integer, primary_key=True)

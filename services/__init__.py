@@ -1,35 +1,24 @@
-"""
-业务服务层模块
+"""Business services, loaded on demand so booking does not initialize embeddings."""
 
-包含：
-- 知识库服务
-- 老师服务
-- 预约服务
-- 用户行为服务
-- 推荐调度服务
-- 文本嵌入工具
-"""
+from importlib import import_module
 
-from .text_embedding import (
-    embed_input,
-    find_best_match_indices,
-    save_teacher_embeddings,
-    load_teacher_embeddings
-)
-from .knowledge_service import KnowledgeService
-from .teacher_service import TeacherService
-from .appointment_service import AppointmentService
-from .user_behavior_service import UserBehaviorService
-from .recommendation_service import RecommendationService
+_EXPORTS = {
+    'embed_input': 'text_embedding',
+    'find_best_match_indices': 'text_embedding',
+    'save_teacher_embeddings': 'text_embedding',
+    'load_teacher_embeddings': 'text_embedding',
+    'KnowledgeService': 'knowledge_service',
+    'TeacherService': 'teacher_service',
+    'AppointmentService': 'appointment_service',
+    'UserBehaviorService': 'user_behavior_service',
+    'RecommendationService': 'recommendation_service',
+}
+__all__ = list(_EXPORTS)
 
-__all__ = [
-    'embed_input',
-    'find_best_match_indices',
-    'save_teacher_embeddings',
-    'load_teacher_embeddings',
-    'KnowledgeService',
-    'TeacherService',
-    'AppointmentService',
-    'UserBehaviorService',
-    'RecommendationService'
-]
+
+def __getattr__(name):
+    if name not in _EXPORTS:
+        raise AttributeError(name)
+    value = getattr(import_module(f'.{_EXPORTS[name]}', __name__), name)
+    globals()[name] = value
+    return value
